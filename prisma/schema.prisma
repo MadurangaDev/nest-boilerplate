@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Minimal, real model backing the auth module below -- unlike the Express
+// version's loginService, this one actually checks a password and issues a
+// token against a real row. Add the rest of your models alongside it.
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+// Second model, backing the `tasks` module -- proves the module pattern
+// repeats for an ordinary CRUD resource, not just auth.
+model Task {
+  id        String   @id @default(cuid())
+  title     String
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
