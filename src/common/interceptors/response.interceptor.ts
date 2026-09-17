@@ -1,15 +1,10 @@
-import {
-  CallHandler,
-  ExecutionContext,
-  Injectable,
-  NestInterceptor,
-} from '@nestjs/common';
+import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable, map } from 'rxjs';
 import { RESPONSE_MESSAGE_KEY } from '../decorators/response-message.decorator';
 
 export interface WrappedResponse<T> {
-  body: T;
+  data: T;
   message: string;
 }
 
@@ -26,6 +21,6 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, WrappedRespons
     const message =
       this.reflector.get<string>(RESPONSE_MESSAGE_KEY, context.getHandler()) ?? 'Success';
 
-    return next.handle().pipe(map((body) => ({ body, message })));
+    return next.handle().pipe(map((data) => ({ data, message })));
   }
 }

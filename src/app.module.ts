@@ -14,6 +14,7 @@ import { pinoConfig } from './core/logger/logger.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { HealthModule } from './modules/health/health.module';
 import { TasksModule } from './modules/tasks/tasks.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
     HealthModule,
     TasksModule,
   ],
+  controllers: [AppController],
   providers: [
     // Every route requires a valid JWT unless @Public(); rate-limited first.
     { provide: APP_GUARD, useClass: ThrottlerGuard },

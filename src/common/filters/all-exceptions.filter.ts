@@ -44,7 +44,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         status: HttpStatus.BAD_REQUEST,
         body: {
           message: 'Validation failed',
-          body: {
+          data: {
             errors: zodError.issues.map((issue) => ({
               path: issue.path.join('.'),
               message: issue.message,
@@ -68,7 +68,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       const payload = exception.getResponse();
       const message =
         typeof payload === 'string' ? payload : (payload as { message?: string }).message;
-      return { status, body: { message: message ?? exception.message, body: null } };
+      return { status, body: { message: message ?? exception.message, data: null } };
     }
 
     // Truly unexpected -- log the real thing, tell the client nothing about it.
@@ -76,30 +76,31 @@ export class AllExceptionsFilter implements ExceptionFilter {
     return this.internalError();
   }
 
-  private resolvePrismaError(
-    exception: Prisma.PrismaClientKnownRequestError,
-  ): { status: number; body: WrappedResponse<unknown> } {
+  private resolvePrismaError(exception: Prisma.PrismaClientKnownRequestError): {
+    status: number;
+    body: WrappedResponse<unknown>;
+  } {
     switch (exception.code) {
       case 'P2002': {
         // Unique constraint failed.
         const target = (exception.meta?.target as string[] | undefined)?.join(', ');
         return {
           status: HttpStatus.CONFLICT,
-          body: { message: target ? `${target} already in use` : 'Duplicate value', body: null },
+          body: { message: target ? `${target} already in use` : 'Duplicate value', data: null },
         };
       }
       case 'P2025':
         // Record required for the operation (update/delete) wasn't found.
         return {
           status: HttpStatus.NOT_FOUND,
-          body: { message: 'Record not found', body: null },
+          body: { message: 'Record not found', data: null },
         };
       case 'P2003':
         // Foreign key constraint failed -- the caller referenced something
         // that doesn't exist.
         return {
           status: HttpStatus.BAD_REQUEST,
-          body: { message: 'Referenced record does not exist', body: null },
+          body: { message: 'Referenced record does not exist', data: null },
         };
       default:
         this.logger.error(`Unhandled Prisma error ${exception.code}: ${exception.message}`);
@@ -110,8 +111,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private internalError(): { status: number; body: WrappedResponse<unknown> } {
     return {
       status: HttpStatus.INTERNAL_SERVER_ERROR,
-      body: { message: 'Internal server error', body: null },
+      body: { message: 'Internal server error', data: null },
     };
   }
 }
-
